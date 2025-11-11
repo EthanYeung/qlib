@@ -42,7 +42,7 @@ from qlib.tests.data import GetData
 def prepare_data(provider_uri="~/.qlib/qlib_data/cn_data", region=REG_CN):
     """
     准备和加载数据 / Prepare and load data
-    
+
     Args:
         provider_uri: 数据存储路径 / Path to store data
         region: 区域配置 / Region configuration
@@ -50,27 +50,27 @@ def prepare_data(provider_uri="~/.qlib/qlib_data/cn_data", region=REG_CN):
     print("=" * 80)
     print("步骤 1: 准备数据 / Step 1: Preparing Data")
     print("=" * 80)
-    
+
     # 下载和准备数据 / Download and prepare data
     GetData().qlib_data(target_dir=provider_uri, region=region, exists_skip=True)
-    
+
     # 初始化 Qlib / Initialize Qlib
     qlib.init(provider_uri=provider_uri, region=region)
-    
+
     print("✓ 数据准备完成 / Data preparation completed\n")
 
 
 def create_model_and_dataset():
     """
     创建模型和数据集配置 / Create model and dataset configuration
-    
+
     Returns:
         tuple: (model, dataset) - 模型和数据集对象 / Model and dataset objects
     """
     print("=" * 80)
     print("步骤 2: 配置模型和数据集 / Step 2: Configuring Model and Dataset")
     print("=" * 80)
-    
+
     # 定义模型配置 / Define model configuration
     # 使用 LightGBM 作为预测模型 / Using LightGBM as prediction model
     model_config = {
@@ -88,7 +88,7 @@ def create_model_and_dataset():
             "num_threads": 20,
         },
     }
-    
+
     # 定义数据集配置 / Define dataset configuration
     # Alpha158 是一个包含158个特征的数据集 / Alpha158 is a dataset with 158 features
     dataset_config = {
@@ -113,25 +113,25 @@ def create_model_and_dataset():
             },
         },
     }
-    
+
     # 初始化模型和数据集 / Initialize model and dataset
     model = init_instance_by_config(model_config)
     dataset = init_instance_by_config(dataset_config)
-    
+
     print("✓ 模型类型 / Model type: LightGBM")
     print("✓ 特征集 / Feature set: Alpha158 (158 features)")
     print("✓ 训练期 / Training period: 2008-01-01 to 2014-12-31")
     print("✓ 验证期 / Validation period: 2015-01-01 to 2016-12-31")
     print("✓ 测试期 / Test period: 2017-01-01 to 2020-08-01")
     print("✓ 股票池 / Stock pool: CSI300\n")
-    
+
     return model, dataset
 
 
 def train_model(model, dataset):
     """
     训练模型 / Train the model
-    
+
     Args:
         model: 机器学习模型 / Machine learning model
         dataset: 训练数据集 / Training dataset
@@ -139,13 +139,13 @@ def train_model(model, dataset):
     print("=" * 80)
     print("步骤 3: 训练模型 / Step 3: Training Model")
     print("=" * 80)
-    
+
     # 查看数据样本 / View data sample
     print("数据样本 / Data sample:")
     example_df = dataset.prepare("train")
     print(example_df.head())
     print(f"数据集形状 / Dataset shape: {example_df.shape}\n")
-    
+
     # 训练模型 / Train model
     print("开始训练模型... / Starting model training...")
     model.fit(dataset)
@@ -155,14 +155,14 @@ def train_model(model, dataset):
 def create_backtest_config():
     """
     创建回测配置 / Create backtest configuration
-    
+
     Returns:
         dict: 回测配置 / Backtest configuration
     """
     print("=" * 80)
     print("步骤 4: 配置回测 / Step 4: Configuring Backtest")
     print("=" * 80)
-    
+
     backtest_config = {
         "executor": {
             "class": "SimulatorExecutor",
@@ -196,7 +196,7 @@ def create_backtest_config():
             },
         },
     }
-    
+
     print("✓ 回测期间 / Backtest period: 2017-01-01 to 2020-08-01")
     print("✓ 初始资金 / Initial capital: 100,000,000")
     print("✓ 基准指数 / Benchmark: SH000300 (CSI300)")
@@ -206,14 +206,14 @@ def create_backtest_config():
     print("  - 开仓成本 / Open cost: 0.05%")
     print("  - 平仓成本 / Close cost: 0.15%")
     print("  - 最小成本 / Min cost: 5\n")
-    
+
     return backtest_config
 
 
 def run_backtest_and_analysis(model, dataset, backtest_config):
     """
     运行回测和分析 / Run backtest and analysis
-    
+
     Args:
         model: 训练好的模型 / Trained model
         dataset: 数据集 / Dataset
@@ -222,30 +222,30 @@ def run_backtest_and_analysis(model, dataset, backtest_config):
     print("=" * 80)
     print("步骤 5: 运行回测和分析 / Step 5: Running Backtest and Analysis")
     print("=" * 80)
-    
+
     # 设置策略信号 / Set strategy signal
     backtest_config["strategy"]["kwargs"]["signal"] = (model, dataset)
-    
+
     # 开始实验 / Start experiment
     with R.start(experiment_name="simple_quant_trading"):
         # 保存模型 / Save model
         R.save_objects(**{"params.pkl": model})
-        
+
         # 获取记录器 / Get recorder
         recorder = R.get_recorder()
-        
+
         # 生成预测信号 / Generate prediction signals
         print("生成预测信号... / Generating prediction signals...")
         sr = SignalRecord(model, dataset, recorder)
         sr.generate()
         print("✓ 预测信号生成完成 / Prediction signals generated\n")
-        
+
         # 信号分析 / Signal analysis
         print("进行信号分析... / Performing signal analysis...")
         sar = SigAnaRecord(recorder)
         sar.generate()
         print("✓ 信号分析完成 / Signal analysis completed\n")
-        
+
         # 投资组合分析和回测 / Portfolio analysis and backtest
         print("运行回测... / Running backtest...")
         par = PortAnaRecord(recorder, backtest_config, "day")
@@ -260,7 +260,8 @@ def print_summary():
     print("=" * 80)
     print("完成！/ Completed!")
     print("=" * 80)
-    print("""
+    print(
+        """
 量化交易流程已完成！/ Quantitative trading workflow completed!
 
 您已经完成了以下步骤：
@@ -283,14 +284,16 @@ Results are saved in the mlruns directory.
 
 要查看更多详细的分析图表，可以运行 examples/workflow_by_code.ipynb
 For more detailed analysis charts, run examples/workflow_by_code.ipynb
-""")
+"""
+    )
 
 
 def main():
     """
     主函数 / Main function
     """
-    print("""
+    print(
+        """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                     简单量化交易示例                                           ║
 ║                Simple Quantitative Trading Example                           ║
@@ -299,27 +302,28 @@ def main():
 ║  This example demonstrates a complete quantitative trading workflow          ║
 ║  using Qlib library                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-""")
-    
+"""
+    )
+
     try:
         # 步骤 1: 准备数据 / Step 1: Prepare data
         prepare_data()
-        
+
         # 步骤 2: 创建模型和数据集 / Step 2: Create model and dataset
         model, dataset = create_model_and_dataset()
-        
+
         # 步骤 3: 训练模型 / Step 3: Train model
         train_model(model, dataset)
-        
+
         # 步骤 4: 创建回测配置 / Step 4: Create backtest configuration
         backtest_config = create_backtest_config()
-        
+
         # 步骤 5: 运行回测和分析 / Step 5: Run backtest and analysis
         run_backtest_and_analysis(model, dataset, backtest_config)
-        
+
         # 打印总结 / Print summary
         print_summary()
-        
+
     except Exception as e:
         print(f"\n❌ 错误 / Error: {str(e)}")
         print("请确保已安装所有依赖项 / Please ensure all dependencies are installed")
