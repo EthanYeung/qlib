@@ -3,9 +3,10 @@
 #  Copyright (c) Microsoft Corporation.
 #  Licensed under the MIT License.
 
+
 """
 简单量化交易示例 / Simple Quantitative Trading Example
-====================================================
+=====================================================
 
 这是一个完整的量化交易工作流程示例，展示了如何使用 Qlib 进行：
 1. 数据准备和加载
